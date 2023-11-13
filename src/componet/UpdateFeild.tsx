@@ -3,11 +3,12 @@ import classNames from "classnames";
 
 type Props = {
   todo1: any;
-  numbers?: number;
+  numbers: number;
+  open?: boolean;
 };
 
 interface IsState {
-  open: boolean;
+  // open: boolean;
 }
 
 class UpdateFeild extends Component<Props, IsState> {
@@ -15,7 +16,7 @@ class UpdateFeild extends Component<Props, IsState> {
     super(porps);
 
     this.state = {
-      open: false,
+      open: this.props.open,
     };
   }
 
@@ -37,7 +38,7 @@ class UpdateFeild extends Component<Props, IsState> {
     return (
       // overlay: 90% opacity of the bg, `inset-0` to stretch over the entire screen
       <div
-        // ref={(ref) => (st.open = ref)}
+        ref={(ref) => (st.open = ref)}
         className={classNames(
           "fixed inset-0 z-10 p-8 text-white bg-gray-600/90",
           `${st.open ? "block" : "hidden"}` // control visibility via `open` attribute (or render conditionally)

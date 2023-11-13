@@ -12,6 +12,7 @@ interface IState {
   valTodo: any;
   todo1?: object;
   numbers: number;
+  open: boolean;
 }
 
 class InputFeild extends Component<Props, IState> {
@@ -22,6 +23,7 @@ class InputFeild extends Component<Props, IState> {
       valTodo: ["todo1"],
       todo1: {},
       numbers: 0,
+      open: false,
     };
   }
 
@@ -37,8 +39,10 @@ class InputFeild extends Component<Props, IState> {
     this.setState({ todo1, todo: "", numbers });
   }
 
-  onOpen(val: string): void {
+  onOpenPackege(val: string): void {
     if ((val = "edit")) {
+    
+      console.log(UpdateFeild.prototype.onOpen)
     }
   }
 
@@ -55,7 +59,7 @@ class InputFeild extends Component<Props, IState> {
             <span className="w-full">{todo1["v" + number]}</span>
             <div className=" float-right flex">
               <span className="ml-3">
-                <LuPencilLine size={20} onClick={() => this.onOpen("edit")} />
+                <LuPencilLine size={20} onClick={() => this.onOpenPackege("edit")} />
               </span>
               <span className="ml-3">
                 <FaTrashAlt size={20} />
@@ -71,7 +75,7 @@ class InputFeild extends Component<Props, IState> {
 
     return (
       <div>
-        <UpdateFeild todo1={this.state.todo1} numbers={this.state.numbers} />;
+        <UpdateFeild todo1={st.todo1} numbers={st.numbers} open={st.open}  />;
         <form className="flex align-center justify-center w-full">
           <input
             type="input"
