@@ -4,6 +4,7 @@ import { MdOutlineFileDownloadDone } from "react-icons/md";
 import classNames from "classnames";
 import { LuPencilLine } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
+import { cloneDeep } from "lodash";
 
 type Props = {};
 
@@ -11,7 +12,8 @@ interface IState {
   todo: string;
   valTodo: any;
   todo1?: object;
-  numbers: number;
+  rowEnd: number;
+  numbersID: number;
   numbersVla: object;
   OnModalEdit: boolean;
   OnModalDelete: boolean;
@@ -23,11 +25,12 @@ class InputFeild extends Component<Props, IState> {
     this.state = {
       todo: "",
       valTodo: ["todo1"],
-      todo1: {} ,
-      numbers: 0,
+      todo1: {},
+      rowEnd: 0,
       numbersVla: {},
       OnModalEdit: false,
       OnModalDelete: false,
+      numbersID: 0,
     };
   }
 
@@ -39,12 +42,12 @@ class InputFeild extends Component<Props, IState> {
     const st = this.state;
     if (st.todo.length) {
       let todo1: any = st["todo1"],
-        numbers: number = st.numbers,
+        rowEnd: number = st.rowEnd,
         numbersVla: any = st.numbersVla,
-        j = ++numbers;
+        j = ++rowEnd;
       todo1["v" + j] = st.todo;
       numbersVla["v" + j] = j;
-      this.setState({ todo1, todo: "", numbers });
+      this.setState({ todo1, todo: "", rowEnd });
     } else {
       alert("please input value");
     }
@@ -53,20 +56,29 @@ class InputFeild extends Component<Props, IState> {
   Todo1Val(e: any, checked: boolean, type: string): void {
     console.log(type);
     const st: any = this.state;
-    const todo1: any = {},
-      numbersVla: any = {};
+    let todo1: any = {};
+    let numbersVla: any = {};
+    todo1 = cloneDeep(st.todo1);
+    numbersVla = cloneDeep(st.numbersVla);
     if (type === "edit") {
-      let edit = true;
-      todo1["v" + st.numbers] = e.target.value;
+      todo1["v" + st.numbersID] = e.target.value;
       this.setState({ todo1, OnModalEdit: checked });
     } else if (type === "delete") {
-      numbersVla["v" + st.numbers] = "";
-      todo1["v" + st.numbers] = "";
+      numbersVla["v" + st.numbersID] = "";
+      todo1["v" + st.numbersID] = "";
       this.setState({ todo1, numbersVla, OnModalDelete: checked });
     }
   }
 
-  OnModalRef(chcek: boolean, type: string) {
+  OnModalRefOpen(chcek: boolean, type: string, num: number) {
+    if (type === "edit") {
+      this.setState({ OnModalEdit: chcek, numbersID: num });
+    } else {
+      this.setState({ OnModalDelete: chcek, numbersID: num });
+    }
+  }
+
+  OnModalRefClose(chcek: boolean, type: string) {
     if (type === "edit") {
       this.setState({ OnModalEdit: chcek });
     } else {
@@ -80,7 +92,7 @@ class InputFeild extends Component<Props, IState> {
 
     console.log(st);
 
-    for (let j = 0; j < st.numbers; j++) {
+    for (let j = 0; j < st.rowEnd; j++) {
       let todo1: any = this.state["todo1"],
         number: number = j + 1;
       TodoList.push(
@@ -97,13 +109,13 @@ class InputFeild extends Component<Props, IState> {
               <span className="ml-[1rem]">
                 <LuPencilLine
                   size={20}
-                  onClick={() => this.OnModalRef(true, "edit")}
+                  onClick={() => this.OnModalRefOpen(true, "edit", number)}
                 />
               </span>
               <span className="ml-[1rem]">
                 <FaTrashAlt
                   size={20}
-                  onClick={() => this.OnModalRef(true, "delete")}
+                  onClick={() => this.OnModalRefOpen(true, "delete", number)}
                 />
               </span>
               <span className="ml-[1rem]">
@@ -151,27 +163,27 @@ class InputFeild extends Component<Props, IState> {
                   <IoClose
                     fontSize={24}
                     className="text-black"
-                    onClick={() => this.OnModalRef(false, "edit")}
+                    onClick={() => this.OnModalRefClose(false, "edit")}
                   />
                 </div>
                 <div className="p-4 md:p-5 space-y-4 flex ">
                   <textarea
                     className="outline outline-1  outline-offset-2 rounded-lg text-black  p-2 w-full"
                     onChange={(e) => this.Todo1Val(e, true, "edit")}
-                    value={st.todo1["v" + st.numbers]}
+                    value={st.todo1["v" + st.numbersID]}
                   ></textarea>
                 </div>
                 <div>
                   <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
                     <button
-                      onClick={() => this.OnModalRef(false, "edit")}
+                      onClick={() => this.OnModalRefClose(false, "edit")}
                       type="button"
                       className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     >
                       Update
                     </button>
                     <button
-                      onClick={() => this.OnModalRef(false, "edit")}
+                      onClick={() => this.OnModalRefClose(false, "edit")}
                       data-modal-hide="default-modal"
                       type="button"
                       className="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
@@ -201,7 +213,7 @@ class InputFeild extends Component<Props, IState> {
                   <IoClose
                     fontSize={24}
                     className="text-black"
-                    onClick={() => this.OnModalRef(false, "delete")}
+                    onClick={() => this.OnModalRefClose(false, "delete")}
                   />
                 </div>
                 <div className="p-4 md:p-5 space-y-4  ">
@@ -214,7 +226,7 @@ class InputFeild extends Component<Props, IState> {
                       Remove
                     </button>
                     <button
-                      onClick={() => this.OnModalRef(false, "delete")}
+                      onClick={() => this.OnModalRefClose(false, "delete")}
                       data-modal-hide="default-modal"
                       type="button"
                       className="ms-3 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
