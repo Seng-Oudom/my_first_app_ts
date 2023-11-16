@@ -5,18 +5,21 @@ import classNames from "classnames";
 import { LuPencilLine } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
 import { cloneDeep } from "lodash";
+import { ajaxGet } from "../helper/func";
+import axios from "axios";
 
 type Props = {};
 
 interface IState {
   todo: string;
-  valTodo: any;
   todo1?: object;
   rowEnd: number;
   numbersID: number;
   numbersVla: object;
   OnModalEdit: boolean;
   OnModalDelete: boolean;
+  bet_data: any;
+  NumberTasks: number;
 }
 
 class InputFeild extends Component<Props, IState> {
@@ -24,14 +27,32 @@ class InputFeild extends Component<Props, IState> {
     super(props);
     this.state = {
       todo: "",
-      valTodo: ["todo1"],
       todo1: {},
       rowEnd: 0,
       numbersVla: {},
       OnModalEdit: false,
       OnModalDelete: false,
       numbersID: 0,
+      bet_data: [],
+      NumberTasks: 0,
     };
+  }
+  componentDidMount(): void {
+    this.fetchDropList();
+  }
+
+  async fetchDropList() {
+    const { todo1, numbersVla, typeOfApi }: any = this.state;
+    let rowEnd: number = 0;
+    ajaxGet(typeOfApi).then((res) => {
+      res.forEach((item: { id: number; note_name: string }, j: number) => {
+        let num = j + 1;
+        todo1["v" + num] = item.note_name;
+        numbersVla["v" + num] = num;
+        rowEnd = num;
+      });
+      this.setState({ todo1, numbersVla, rowEnd, bet_data: res });
+    });
   }
 
   setTodo(e: any): void {
@@ -53,28 +74,50 @@ class InputFeild extends Component<Props, IState> {
     }
   }
 
-  Todo1Val(e: any, checked: boolean, type: string): void {
-    console.log(type);
+  async Todo1Val(e: any, checked: boolean, type: string) {
     const st: any = this.state;
     let todo1: any = {};
     let numbersVla: any = {};
     todo1 = cloneDeep(st.todo1);
     numbersVla = cloneDeep(st.numbersVla);
-    if (type === "edit") {
+
+    if (type === "update_1") {
       todo1["v" + st.numbersID] = e.target.value;
-      this.setState({ todo1, OnModalEdit: checked });
-    } else if (type === "delete") {
-      numbersVla["v" + st.numbersID] = "";
-      todo1["v" + st.numbersID] = "";
-      this.setState({ todo1, numbersVla, OnModalDelete: checked });
+      this.setState({
+        todo1,
+        OnModalEdit: checked,
+      });
+    } else if (type === "delete" || "update") {
+      let typeOfApi = type === "update" ? "update" : "delete";
+      numbersVla["v" + st.numbersID] =
+        type === "update" ? numbersVla["v" + st.numbersID] : "";
+      todo1["v" + st.numbersID] =
+        type === "update" ? todo1["v" + st.numbersID] : "";
+
+      await axios.get(
+        `http://127.0.0.1:8000/api/${typeOfApi}/${st.NumberTasks},${
+          todo1["v" + st.numbersID]
+        }`
+      );
+      this.setState({
+        todo1,
+        numbersVla,
+        OnModalEdit: checked,
+        OnModalDelete: checked,
+      });
     }
   }
 
-  OnModalRefOpen(chcek: boolean, type: string, num: number) {
+  OnModalRefOpen(
+    chcek: boolean,
+    type: string,
+    num: number,
+    NumberTasks: number
+  ) {
     if (type === "edit") {
-      this.setState({ OnModalEdit: chcek, numbersID: num });
+      this.setState({ OnModalEdit: chcek, numbersID: num, NumberTasks });
     } else {
-      this.setState({ OnModalDelete: chcek, numbersID: num });
+      this.setState({ OnModalDelete: chcek, numbersID: num, NumberTasks });
     }
   }
 
@@ -89,12 +132,14 @@ class InputFeild extends Component<Props, IState> {
   render() {
     const st: any = this.state;
     let TodoList: any = [];
-
     console.log(st);
 
     for (let j = 0; j < st.rowEnd; j++) {
-      let todo1: any = this.state["todo1"],
-        number: number = j + 1;
+      const { todo1, bet_data }: any = this.state;
+      let number: number = j + 1;
+
+      let NumberTasks = bet_data.map((item: any) => item.id);
+
       TodoList.push(
         <div
           className={classNames(
@@ -109,13 +154,17 @@ class InputFeild extends Component<Props, IState> {
               <span className="ml-[1rem]">
                 <LuPencilLine
                   size={20}
-                  onClick={() => this.OnModalRefOpen(true, "edit", number)}
+                  onClick={() =>
+                    this.OnModalRefOpen(true, "edit", number, NumberTasks[j])
+                  }
                 />
               </span>
               <span className="ml-[1rem]">
                 <FaTrashAlt
                   size={20}
-                  onClick={() => this.OnModalRefOpen(true, "delete", number)}
+                  onClick={() =>
+                    this.OnModalRefOpen(true, "delete", number, NumberTasks[j])
+                  }
                 />
               </span>
               <span className="ml-[1rem]">
@@ -169,14 +218,14 @@ class InputFeild extends Component<Props, IState> {
                 <div className="p-4 md:p-5 space-y-4 flex ">
                   <textarea
                     className="outline outline-1  outline-offset-2 rounded-lg text-black  p-2 w-full"
-                    onChange={(e) => this.Todo1Val(e, true, "edit")}
+                    onChange={(e) => this.Todo1Val(e, true, "update_1")}
                     value={st.todo1["v" + st.numbersID]}
                   ></textarea>
                 </div>
                 <div>
                   <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
                     <button
-                      onClick={() => this.OnModalRefClose(false, "edit")}
+                      onClick={(e) => this.Todo1Val(e, false, "update")}
                       type="button"
                       className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                     >
