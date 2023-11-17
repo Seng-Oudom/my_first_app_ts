@@ -1,11 +1,10 @@
 import React, { Component } from "react";
 import { FaTrashAlt } from "react-icons/fa";
-import { MdOutlineFileDownloadDone } from "react-icons/md";
 import classNames from "classnames";
 import { LuPencilLine } from "react-icons/lu";
 import { IoClose } from "react-icons/io5";
 import { cloneDeep } from "lodash";
-import { ajaxGet } from "../helper/func";
+import { ajaxGet, ajaxInsert } from "../helper/func";
 import axios from "axios";
 
 type Props = {};
@@ -42,9 +41,9 @@ class InputFeild extends Component<Props, IState> {
   }
 
   async fetchDropList() {
-    const { todo1, numbersVla, typeOfApi }: any = this.state;
+    const { todo1, numbersVla }: any = this.state;
     let rowEnd: number = 0;
-    ajaxGet(typeOfApi).then((res) => {
+    ajaxGet().then((res) => {
       res.forEach((item: { id: number; note_name: string }, j: number) => {
         let num = j + 1;
         todo1["v" + num] = item.note_name;
@@ -68,7 +67,9 @@ class InputFeild extends Component<Props, IState> {
         j = ++rowEnd;
       todo1["v" + j] = st.todo;
       numbersVla["v" + j] = j;
-      this.setState({ todo1, todo: "", rowEnd });
+      ajaxInsert(st.todo).then((res) => {
+      this.setState({ todo1, todo: "", rowEnd, bet_data: res.code });
+      });
     } else {
       alert("please input value");
     }
@@ -166,9 +167,6 @@ class InputFeild extends Component<Props, IState> {
                     this.OnModalRefOpen(true, "delete", number, NumberTasks[j])
                   }
                 />
-              </span>
-              <span className="ml-[1rem]">
-                <MdOutlineFileDownloadDone size={20} />
               </span>
             </div>
           </div>
