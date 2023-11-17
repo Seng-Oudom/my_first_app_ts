@@ -15,3 +15,7 @@ Follow these simple steps to get the project up and running:
     ```bash
     npm run start
 
+3. **Install the Repository and Run API Rest:**
+ 
+    ```bash
+   https://github.com/daikijager/my_app_ts_api
